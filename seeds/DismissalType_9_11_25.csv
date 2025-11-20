@@ -1,0 +1,11 @@
+DismissalTypeID,DismissalType,IsDismissal,BowlersWicket
+1,Bowled,1,1
+2,LBW,1,1
+3,Caught,1,1
+4,Stumped,1,1
+5,Caught And Bowled,1,1
+6,Hit Wicket,1,1
+7,Run Out,1,0
+8,Obstructing the Field,1,0
+9,Retired Hurt,0,0
+10,Retired Out,1,0

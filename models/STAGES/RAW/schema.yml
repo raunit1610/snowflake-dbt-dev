@@ -1,0 +1,159 @@
+version: 2
+models:
+  - name: STG_RAW_PLAYER
+    description: ""
+    columns:
+      - name: playerid
+        data_type: number
+        description: ""
+      - name: playername
+        data_type: varchar
+        description: ""
+      - name: filename
+        data_type: varchar
+        description: ""
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""
+
+  - name: STG_RAW_PLAYERSEASON
+    description: ""
+    columns:
+      - name: playerid
+        data_type: number
+        description: ""
+      - name: teamid
+        data_type: number
+        description: ""
+      - name: season
+        data_type: number
+        description: ""
+      - name: filename
+        data_type: varchar
+        description: ""
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""
+
+  - name: STG_RAW_BATTINGCARD
+    description: ""
+    columns:
+      - name: matchid
+        data_type: number
+        description: ""
+      - name: inningid
+        data_type: number
+        description: ""
+      - name: playorder
+        data_type: number
+        description: ""
+      - name: batsmanid
+        data_type: number
+        description: ""
+      - name: dismissaltypeid
+        data_type: number
+        description: ""
+      - name: bowlerid
+        data_type: number
+        description: ""
+      - name: fielderid
+        data_type: number
+        description: ""
+      - name: runs
+        data_type: number
+        description: ""
+      - name: balls
+        data_type: number
+        description: ""
+      - name: bounderies
+        data_type: number
+        description: ""
+      - name: sixes
+        data_type: number
+        description: ""
+      - name: dotsballs
+        data_type: number
+        description: ""
+      - name: filename
+        data_type: varchar
+        description: ""
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""
+
+  - name: STG_RAW_BOWLINGCARD
+    description: ""
+    columns:
+      - name: matchid
+        data_type: number
+        description: ""
+      - name: inningid
+        data_type: number
+        description: ""
+      - name: bowlerid
+        data_type: number
+        description: ""
+      - name: ballsbowled
+        data_type: number
+        description: ""
+      - name: maidens
+        data_type: number
+        description: ""
+      - name: dotballs
+        data_type: number
+        description: ""
+      - name: runsgiven
+        data_type: number
+        description: ""
+      - name: bounderiesconceded
+        data_type: number
+        description: ""
+      - name: sixesconceded
+        data_type: number
+        description: ""
+      - name: noballs
+        data_type: number
+        description: ""
+      - name: wides
+        data_type: number
+        description: ""
+      - name: wicketstaken
+        data_type: number
+        description: ""
+      - name: filename
+        data_type: varchar
+        description: ""
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""
+
+  - name: STG_RAW_TEAM
+    description: ""
+    columns:
+      - name: teamid
+        data_type: number
+        description: ""
+      - name: teamname
+        data_type: varchar
+        description: ""
+      - name: filename
+        data_type: varchar
+        description: ""
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""

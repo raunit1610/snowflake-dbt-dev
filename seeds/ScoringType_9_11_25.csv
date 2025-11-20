@@ -1,0 +1,8 @@
+ScoringTypeID,ScoringType,ScoreAggregationType
+1,noball,Bowler
+2,wide,Bowler
+3,bye,None
+4,legbye,None
+5,penalty,None
+6,Runs,Batsman
+7,None,None
