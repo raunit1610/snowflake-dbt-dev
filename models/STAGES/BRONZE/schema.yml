@@ -1,0 +1,74 @@
+version: 2
+models:
+  - name: STG_BRONZE_PLAYERSTATS
+    description: ""
+    columns:
+      - name: season
+        data_type: number
+        description: ""
+      - name: matchid
+        data_type: number
+        description: ""
+      - name: inning
+        data_type: number
+        description: ""
+      - name: teamid
+        data_type: number
+        description: ""
+      - name: teamname
+        data_type: varchar
+        description: ""
+      - name: playerid
+        data_type: number
+        description: ""
+      - name: playername
+        data_type: varchar
+        description: ""
+      - name: playerorder
+        data_type: number
+        description: ""
+      - name: runs_made
+        data_type: number
+        description: ""
+      - name: balls_played
+        data_type: number
+        description: ""
+      - name: fours_hitten
+        data_type: number
+        description: ""
+      - name: sixes_hitten
+        data_type: number
+        description: ""
+      - name: dotballs_played
+        data_type: number
+        description: ""
+      - name: bowls_bowled
+        data_type: number
+        description: ""
+      - name: maiden_taken
+        data_type: number
+        description: ""
+      - name: dotsballs_thrown
+        data_type: number
+        description: ""
+      - name: runs_given
+        data_type: number
+        description: ""
+      - name: bounderies_conceded
+        data_type: number
+        description: ""
+      - name: sixes_conceded
+        data_type: number
+        description: ""
+      - name: noballs_given
+        data_type: number
+        description: ""
+      - name: wides_given
+        data_type: number
+        description: ""
+      - name: wickets_taken
+        data_type: number
+        description: ""
+      - name: inserted_at
+        data_type: timestamp_ntz
+        description: ""
