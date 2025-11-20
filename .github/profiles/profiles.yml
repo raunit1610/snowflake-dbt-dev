@@ -1,4 +1,4 @@
-T20_DBT_PROJECT_TESTING_1:
+SNOWFLAKE_DBT_T20:
   target: ci
   outputs:
     ci:
