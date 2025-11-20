@@ -1,24 +1,24 @@
 SNOWFLAKE_DBT_T20:
+  target: dev
   outputs:
     dev:
+      type: snowflake
       account: NSZFGKQ-KM67393
-      database: SNOWFLAKE_DBT_DEV
+      user: RAUNITRAJ161021
       password: R@unitr@j@1234$
       role: ACCOUNTADMIN
-      schema: PUBLIC
-      type: snowflake
-      user: RAUNITRAJ161021
       warehouse: COMPUTE_WH
-  target: dev
-T20_DBT_PROJECT_TESTING_1:
-  outputs:
-    dev:
-      account: NSZFGKQ-KM67393
       database: RAUNIT_T20_DBT
+      schema: T20_DATA_TRANSFORM
+
+    ci:
+      type: snowflake
+      account: NSZFGKQ-KM67393
+      user: RAUNITRAJ161021
       password: R@unitr@j@1234$
       role: ACCOUNTADMIN
-      schema: T20_DATA_TRANSFORM
-      type: snowflake
-      user: RAUNITRAJ161021
+      database: RAUNIT_T20_DBT
       warehouse: COMPUTE_WH
-  target: dev
+      schema: T20_DATA_TRANSFORM
+      threads: 4
+      client_session_keep_alive: False
