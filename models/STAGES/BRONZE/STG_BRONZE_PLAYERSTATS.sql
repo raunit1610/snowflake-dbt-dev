@@ -1,6 +1,8 @@
 {{
     config(
-        materialized='table'
+        materialized='incremental',
+        unique_key=['SEASON','MATCHID','TEAMID','PLAYERID'],
+        incremental_strategy='merge'
     )
 }}
 
@@ -37,6 +39,19 @@ WITH playerstats AS (
         ON P.PLAYERID = BO.BOWLERID 
         AND BA.MATCHID = BO.MATCHID 
         AND BA.INNINGID = BO.INNINGID
+
+    {% if is_incremental() %}
+        WHERE INSERTED_AT > (SELECT COALESCE(MAX(INSERTED_AT), '1900-01-01') FROM {{ this }})
+    {% endif %}
+),
+deduped AS (
+    SELECT *,
+           ROW_NUMBER() OVER (
+               PARTITION BY SEASON, MATCHID, INNING, TEAMID, PLAYERID
+               ORDER BY INSERTED_AT DESC
+           ) AS rn
+    FROM playerstats
 )
 SELECT *
-FROM playerstats
+FROM deduped
+WHERE rn = 1

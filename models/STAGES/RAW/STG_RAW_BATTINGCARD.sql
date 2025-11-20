@@ -1,6 +1,8 @@
 {{
     config(
-        materialized='table'
+        materialized='incremental',
+        unique_key=['MATCHID', 'BATSMANID'],
+        incremental_strategy='merge'
     )
 }}
 
@@ -13,3 +15,7 @@ WITH source_data AS (
 
 SELECT *
 FROM source_data
+
+{% if is_incremental() %}
+  WHERE _inserted_at_ > (SELECT COALESCE(MAX(_inserted_at_), '1900-01-01') FROM {{ this }})
+{% endif %}
