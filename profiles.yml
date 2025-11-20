@@ -1,0 +1,24 @@
+SNOWFLAKE_DBT_T20:
+  outputs:
+    dev:
+      account: NSZFGKQ-KM67393
+      database: SNOWFLAKE_DBT_DEV
+      password: R@unitr@j@1234$
+      role: ACCOUNTADMIN
+      schema: PUBLIC
+      type: snowflake
+      user: RAUNITRAJ161021
+      warehouse: COMPUTE_WH
+  target: dev
+T20_DBT_PROJECT_TESTING_1:
+  outputs:
+    dev:
+      account: NSZFGKQ-KM67393
+      database: RAUNIT_T20_DBT
+      password: R@unitr@j@1234$
+      role: ACCOUNTADMIN
+      schema: T20_DATA_TRANSFORM
+      type: snowflake
+      user: RAUNITRAJ161021
+      warehouse: COMPUTE_WH
+  target: dev

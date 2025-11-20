@@ -36,17 +36,17 @@ jobs:
       - name: Install dbt dependencies
         run: |
           source venv/bin/activate
-          dbt deps --profiles-dir .github/profiles
+          dbt deps --profiles-dir .
 
       - name: Build dbt models
         run: |
           source venv/bin/activate
-          dbt build --profiles-dir .github/profiles
+          dbt build --profiles-dir .
 
       - name: Generate dbt docs
         run: |
           source venv/bin/activate
-          dbt docs generate --profiles-dir .github/profiles
+          dbt docs generate --profiles-dir .
 
       - name: Upload docs artifact
         uses: actions/upload-pages-artifact@v4
