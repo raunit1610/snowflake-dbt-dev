@@ -2,8 +2,8 @@ version: 2
 
 sources:
   - name: t20_database
-    database: RAUNIT_T20_DBT
-    schema: T20_RAW
+    database: SNOWFLAKE_DBT_DEV
+    schema: PUBLIC
     tables:
       - name: players
         identifier: PLAYER
@@ -15,18 +15,3 @@ sources:
         identifier: BOWLINGSCORECARD
       - name: playerseason
         identifier: PLAYERSEASON
-
-  - name: seed_data
-    database: RAUNIT_T20_DBT
-    schema: T20_DATA_TRANSFORM
-    tables:
-      - name: balltype
-        identifier: BallType_9_11_25
-      - name: dismissalType
-        identifier: DismissalType_9_11_25
-      - name: scoringtype
-        identifier: ScoringType_9_11_25
-      - name: playerr
-        identifier: Player_9_11_25
-    
-      
