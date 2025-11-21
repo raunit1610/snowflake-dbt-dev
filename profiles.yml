@@ -8,8 +8,8 @@ SNOWFLAKE_DBT_T20:
       password: R@unitr@j@1234$
       role: ACCOUNTADMIN
       warehouse: COMPUTE_WH
-      database: RAUNIT_T20_DBT
-      schema: T20_DATA_TRANSFORM
+      database: SNOWFLAKE_DBT_DEV
+      schema: PUBLIC
 
     ci:
       type: snowflake
@@ -17,8 +17,8 @@ SNOWFLAKE_DBT_T20:
       user: RAUNITRAJ161021
       password: R@unitr@j@1234$
       role: ACCOUNTADMIN
-      database: RAUNIT_T20_DBT
+      database: SNOWFLAKE_DBT_DEV
       warehouse: COMPUTE_WH
-      schema: T20_DATA_TRANSFORM
+      schema: PUBLIC
       threads: 4
       client_session_keep_alive: False
