@@ -25,6 +25,9 @@ models:
       - name: playerid
         data_type: number
         description: ""
+        tests:
+          - primary
+          - not_null
       - name: playername
         data_type: varchar
         description: ""
