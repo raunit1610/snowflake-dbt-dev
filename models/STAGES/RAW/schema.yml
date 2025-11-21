@@ -38,6 +38,25 @@ models:
         data_type: timestamp_ntz
         description: ""
 
+  - name: STG_RAW_PLAYER3
+    description: ""
+    columns:
+      - name: playerid
+        data_type: number
+        description: ""
+      - name: playername
+        data_type: varchar
+        description: ""
+      - name: filename
+        data_type: varchar
+        description: ""
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""
+
   - name: STG_RAW_PLAYERSEASON
     description: ""
     columns:
