@@ -25,6 +25,8 @@ models:
       - name: playerid
         data_type: number
         description: ""
+        tests:
+          - not_null
       - name: playername
         data_type: varchar
         description: ""
@@ -178,6 +180,46 @@ models:
         description: ""
 
   - name: STG_RAW_TEAM
+    description: ""
+    columns:
+      - name: teamid
+        data_type: number
+        description: ""
+      - name: teamname
+        data_type: varchar
+        description: ""
+      - name: filename
+        data_type: varchar
+        description: ""
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""
+
+  - name: STG_RAW_TEAM2
+    description: ""
+    columns:
+      - name: teamid
+        data_type: number
+        description: ""
+      - name: teamname
+        data_type: varchar
+        description: ""
+        tests:
+          - unique
+      - name: filename
+        data_type: varchar
+        description: ""
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""
+
+  - name: STG_RAW_TEAM3
     description: ""
     columns:
       - name: teamid
