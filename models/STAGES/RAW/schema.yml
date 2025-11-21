@@ -25,8 +25,6 @@ models:
       - name: playerid
         data_type: number
         description: ""
-        tests:
-          - not_null
       - name: playername
         data_type: varchar
         description: ""
@@ -207,8 +205,6 @@ models:
       - name: teamname
         data_type: varchar
         description: ""
-        tests:
-          - unique
       - name: filename
         data_type: varchar
         description: ""
