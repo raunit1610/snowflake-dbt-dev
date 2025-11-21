@@ -10,15 +10,3 @@ SNOWFLAKE_DBT_T20:
       warehouse: COMPUTE_WH
       database: SNOWFLAKE_DBT_DEV
       schema: PUBLIC
-
-    ci:
-      type: snowflake
-      account: NSZFGKQ-KM67393
-      user: RAUNITRAJ161021
-      password: R@unitr@j@1234$
-      role: ACCOUNTADMIN
-      database: SNOWFLAKE_DBT_DEV
-      warehouse: COMPUTE_WH
-      schema: PUBLIC
-      threads: 4
-      client_session_keep_alive: False

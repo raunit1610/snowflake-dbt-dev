@@ -1,7 +1,7 @@
 SNOWFLAKE_DBT_T20:
-  target: ci
+  target: prod
   outputs:
-    ci:
+    prod:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
       user: "{{ env_var('SNOWFLAKE_USER') }}"
