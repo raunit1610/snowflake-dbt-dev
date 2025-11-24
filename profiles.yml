@@ -1,12 +1,12 @@
 SNOWFLAKE_DBT_T20:
-  target: dev
+  target: prod
   outputs:
-    dev:
+    prod:
       type: snowflake
       account: NSZFGKQ-KM67393
       user: RAUNITRAJ161021
       password: R@unitr@j@1234$
       role: ACCOUNTADMIN
       warehouse: COMPUTE_WH
-      database: SNOWFLAKE_DBT_DEV
+      database: SNOWFLAKE_DBT_PROD
       schema: PUBLIC

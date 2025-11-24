@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: t20_database
-    database: SNOWFLAKE_DBT_DEV
+    database: SNOWFLAKE_DBT_RAW
     schema: PUBLIC
     tables:
       - name: players

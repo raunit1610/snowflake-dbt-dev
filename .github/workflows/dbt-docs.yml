@@ -13,6 +13,15 @@ jobs:
   docs:
     runs-on: ubuntu-latest
 
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE_PROD }}
+      SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -36,17 +45,17 @@ jobs:
       - name: Install dbt dependencies
         run: |
           source venv/bin/activate
-          dbt deps --profiles-dir .
+          dbt deps --profiles-dir .github/profiles
 
       - name: Build dbt models
         run: |
           source venv/bin/activate
-          dbt build --profiles-dir .
+          dbt build --profiles-dir .github/profiles
 
       - name: Generate dbt docs
         run: |
           source venv/bin/activate
-          dbt docs generate --profiles-dir .
+          dbt docs generate --profiles-dir .github/profiles
 
       - name: Upload docs artifact
         uses: actions/upload-pages-artifact@v4

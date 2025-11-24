@@ -1,0 +1,68 @@
+name: dbt-slim-ci
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  slim-ci:
+    runs-on: ubuntu-latest
+
+    env:
+      DBT_TARGET: ci
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE_CI }}
+      SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+
+    steps:
+      # 0. Checkout PR code first (current ref)
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          path: pr
+
+      # 1. Set up Python and venv at workspace root
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Create virtualenv
+        working-directory: .
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install --upgrade "pip<24"
+          pip install "click==8.1.6"
+          pip install "dbt-snowflake==1.9.1"
+          # persist PATH so venv is active in later steps
+          echo "PATH=$PATH" >> $GITHUB_ENV
+
+      # 2. Checkout main and compile to create state manifest
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - name: Compile main to state
+        working-directory: main
+        run: |
+          . ../.venv/bin/activate
+          dbt compile --target-path ../state_main --profiles-dir .github/profiles
+
+      # 3. Run slim CI using state from main
+      - name: Slim CI build
+        working-directory: pr
+        run: |
+          . ../.venv/bin/activate
+          dbt build \
+            --select "state:modified+1" \
+            --state ../state_main \
+            --defer --favor-state \
+            --profiles-dir .github/profiles
