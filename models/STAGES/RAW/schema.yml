@@ -14,6 +14,8 @@ models:
         description: ""
         constraints:
           - type: not_null
+        # tests:
+        #   - unique
       - name: filename
         data_type: varchar
         description: ""
