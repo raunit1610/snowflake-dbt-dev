@@ -2,6 +2,9 @@ version: 2
 models:
   - name: STG_RAW_PLAYER
     description: ""
+    constraints:
+      - type: primary_key
+        columns: playerid
     columns:
       - name: playerid
         data_type: number
@@ -9,18 +12,29 @@ models:
       - name: playername
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: filename
         data_type: varchar
         description: ""
+        constraints: 
+          - type: not_null
       - name: load_timestamp
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
 
   - name: STG_RAW_PLAYER2
     description: ""
+    constraints:
+      - type: primary_key
+        columns: playerid
     columns:
       - name: playerid
         data_type: number
@@ -28,18 +42,29 @@ models:
       - name: playername
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: filename
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: load_timestamp
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
 
   - name: STG_RAW_PLAYER3
     description: ""
+    constraints:
+      - type: primary_key
+        columns: playerid
     columns:
       - name: playerid
         data_type: number
@@ -47,18 +72,29 @@ models:
       - name: playername
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: filename
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: load_timestamp
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
 
   - name: STG_RAW_PLAYERSEASON
     description: ""
+    constraints:
+      - type: primary_key
+        columns: [playerid, teamid]
     columns:
       - name: playerid
         data_type: number
@@ -69,18 +105,29 @@ models:
       - name: season
         data_type: number
         description: ""
+        constraints:
+          - type: not_null
       - name: filename
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: load_timestamp
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
 
   - name: STG_RAW_BATTINGCARD
     description: ""
+    constraints:
+      - type: primary_key
+        columns: [matchid, batsmanid]
     columns:
       - name: matchid
         data_type: number
@@ -88,9 +135,13 @@ models:
       - name: inningid
         data_type: number
         description: ""
+        constraints:
+          - type: not_null
       - name: playorder
         data_type: number
         description: ""
+        constraints:
+          - type: not_null
       - name: batsmanid
         data_type: number
         description: ""
@@ -121,15 +172,24 @@ models:
       - name: filename
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: load_timestamp
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
 
   - name: STG_RAW_BOWLINGCARD
     description: ""
+    constraints:
+      - type: primary_key
+        columns: [matchid, bowlerid]
     columns:
       - name: matchid
         data_type: number
@@ -137,6 +197,8 @@ models:
       - name: inningid
         data_type: number
         description: ""
+        constraints:
+          - type: not_null
       - name: bowlerid
         data_type: number
         description: ""
@@ -170,15 +232,24 @@ models:
       - name: filename
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: load_timestamp
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
 
   - name: STG_RAW_TEAM
     description: ""
+    constraints:
+      - type: primary_key
+        columns: teamid
     columns:
       - name: teamid
         data_type: number
@@ -186,18 +257,29 @@ models:
       - name: teamname
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: filename
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: load_timestamp
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
 
   - name: STG_RAW_TEAM2
     description: ""
+    constraints:
+      - type: primary_key
+        columns: teamid
     columns:
       - name: teamid
         data_type: number
@@ -208,15 +290,24 @@ models:
       - name: filename
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: load_timestamp
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
 
   - name: STG_RAW_TEAM3
     description: ""
+    constraints:
+      - type: primary_key
+        columns: teamid
     columns:
       - name: teamid
         data_type: number
@@ -224,12 +315,18 @@ models:
       - name: teamname
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: filename
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: load_timestamp
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""

@@ -2,6 +2,9 @@ version: 2
 models:
   - name: STG_BRONZE_PLAYERSTATS
     description: ""
+    constraints:
+      - type: primary_key
+        columns: [season, matchid, teamid, playerid]
     columns:
       - name: season
         data_type: number
@@ -12,18 +15,24 @@ models:
       - name: inning
         data_type: number
         description: ""
+        constraints:
+          - type: not_null
       - name: teamid
         data_type: number
         description: ""
       - name: teamname
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: playerid
         data_type: number
         description: ""
       - name: playername
         data_type: varchar
         description: ""
+        constraints:
+          - type: not_null
       - name: playerorder
         data_type: number
         description: ""
@@ -72,3 +81,5 @@ models:
       - name: inserted_at
         data_type: timestamp_ntz
         description: ""
+        constraints:
+          - type: not_null
