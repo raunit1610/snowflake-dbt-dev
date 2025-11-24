@@ -36,3 +36,9 @@ jobs:
                 warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
                 threads: 4
           EOF
+
+      - name: Install dbt
+        run: pip install dbt-snowflake
+
+      - name: Run dbt
+        run: dbt run
