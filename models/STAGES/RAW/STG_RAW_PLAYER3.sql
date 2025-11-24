@@ -15,7 +15,7 @@ WITH source_data AS (
 deduped AS (
     SELECT
         PLAYERID,
-        ANY_VALUE(PLAYERNAME)::VARCHAR(10) AS PLAYERNAME,
+        ANY_VALUE(PLAYERNAME) AS PLAYERNAME,
         ANY_VALUE(FILENAME) AS FILENAME,
         ANY_VALUE(LOAD_TIMESTAMP) AS LOAD_TIMESTAMP,
         MAX(_inserted_at_) AS _inserted_at_
