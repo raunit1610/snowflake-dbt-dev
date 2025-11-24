@@ -39,7 +39,7 @@ jobs:
       - name: Write profiles.yml from env
         run: |
           cat > profiles.yml << 'EOF'
-          my_profile:
+          SNOWFLAKE_DBT_T20:
             target: prod
             outputs:
               prod:
