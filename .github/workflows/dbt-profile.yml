@@ -1,0 +1,38 @@
+name: Build Snowflake Profile.yml file
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  dbt-run:
+    runs-on: ubuntu-latest
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE_PROD }}
+      SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write profiles.yml from env
+        run: |
+          cat > profiles.yml << 'EOF'
+          my_profile:
+            target: prod
+            outputs:
+              prod:
+                type: snowflake
+                account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+                user: "{{ env_var('SNOWFLAKE_USER') }}"
+                password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+                role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+                database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
+                schema: "{{ env_var('SNOWFLAKE_SCHEMA') }}"
+                warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+                threads: 4
+          EOF
