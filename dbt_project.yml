@@ -36,6 +36,9 @@ models:
     STAGES:
       +schema: "STAGES"
       +materialized: table
+    VIEWS:
+      +schema: "VIEWS"
+      +materialized: view
   elementary:
     +schema: "T20_ELEMENTARY_MODELS"
     tags: ["elementary"]
