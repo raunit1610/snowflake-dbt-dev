@@ -19,6 +19,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 1. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 2. Create and prepare virtualenv
+      - name: Create venv and install dbt
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install dbt-snowflake
+        # Optionally make venv bin first on PATH for later steps
+        #  echo "$PWD/.venv/bin" >> $GITHUB_PATH
+
+      # 3. Write profiles.yml that uses env_var()
       - name: Write profiles.yml from env
         run: |
           cat > profiles.yml << 'EOF'
@@ -37,8 +54,8 @@ jobs:
                 threads: 4
           EOF
 
-      - name: Install dbt
-        run: pip install dbt-snowflake
-
+      # 4. Run dbt inside the venv, using profiles.yml in repo root
       - name: Run dbt
-        run: dbt run
+        run: |
+          . .venv/bin/activate
+          dbt run --profiles-dir .
