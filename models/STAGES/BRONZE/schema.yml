@@ -5,10 +5,19 @@ models:
     constraints:
       - type: primary_key
         columns: [season, matchid, teamid, playerid]
+      - type: foreign_key
+        columns: teamid
+        expression: "references {{ ref('STG_RAW_TEAM') }}(teamid)"
+      - type: foreign_key
+        columns: playerid
+        expression: "references {{ ref('STG_RAW_PLAYER') }}(playerid)"
     columns:
       - name: season
         data_type: number
         description: ""
+        constraints:
+          - type: check
+            expression: "season > 2008 and season < 2025"
       - name: matchid
         data_type: number
         description: ""
@@ -17,6 +26,8 @@ models:
         description: ""
         constraints:
           - type: not_null
+          - type: check 
+            expression: "inning in (1,2)"
       - name: teamid
         data_type: number
         description: ""
