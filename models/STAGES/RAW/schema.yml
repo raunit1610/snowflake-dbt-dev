@@ -287,8 +287,6 @@ models:
       - name: teamname
         data_type: varchar
         description: ""
-        constraints:
-          - type: not_null
       - name: filename
         data_type: varchar
         description: ""
@@ -332,5 +330,3 @@ models:
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
-        constraints:
-          - type: not_null
