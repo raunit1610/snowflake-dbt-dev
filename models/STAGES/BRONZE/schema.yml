@@ -7,10 +7,10 @@ models:
         columns: [season, matchid, teamid, playerid]
       - type: foreign_key
         columns: teamid
-        expression: "references {{ ref('STG_RAW_TEAM') }}(teamid)"
+        expression: "references STG_RAW_TEAM(teamid)"
       - type: foreign_key
         columns: playerid
-        expression: "references {{ ref('STG_RAW_PLAYER') }}(playerid)"
+        expression: "references STG_RAW_PLAYER(playerid)"
     columns:
       - name: season
         data_type: number
