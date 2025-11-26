@@ -18,5 +18,5 @@ SNOWFLAKE_DBT_T20:
       password: ""
       role: "{{ var('TARGET_ROLE','ACCOUNTADMIN') }}"
       warehouse: "{{ var('TARGET_WH','COMPUTE_WH') }}"
-      database: "{{ var('TARGET_DB','SNOWFLAKE_DB') }}"
+      database: "{{ var('TARGET_DB','SNOWFLAKE') }}"
       schema: "{{ var('TARGET_SC','PUBLIC') }}"
