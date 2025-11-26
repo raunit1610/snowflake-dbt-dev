@@ -1,0 +1,22 @@
+SNOWFLAKE_DBT_T20:
+  target: "{{ env_var('TARGET','prod') }}"
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('TARGET_ACC') }}"
+      user: "{{ env_var('TARGET_USER') }}"
+      password: "{{ env_var('TARGET_PASS') }}"
+      role: "{{ env_var('TARGET_ROLE') }}"
+      warehouse: "{{ env_var('TARGET_WH') }}"
+      database: "{{ env_var('TARGET_DB') }}"
+      schema: "{{ env_var('TARGET_SC') }}"
+      
+    prod:
+      type: snowflake
+      account: ""
+      user: ""
+      password: ""
+      role: "{{ var('TARGET_ROLE','ACCOUNTADMIN') }}"
+      warehouse: "{{ var('TARGET_WH','COMPUTE_WH') }}"
+      database: "{{ var('TARGET_DB') }}"
+      schema: "{{ var('TARGET_SC') }}"
