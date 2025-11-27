@@ -1,0 +1,9 @@
+selectors:
+  - name: default_for_dev
+    default: "{{ target.name == 'dev' | as_bool }}"
+    definition:
+      method: tag
+      value: "*"
+      exclude:
+        - method: tag
+          value: inactive
