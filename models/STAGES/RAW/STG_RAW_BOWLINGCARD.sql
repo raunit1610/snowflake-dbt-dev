@@ -2,7 +2,8 @@
     config(
         materialized='incremental',
         unique_key=['MATCHID', 'BOWLERID'],
-        incremental_strategy='merge'
+        incremental_strategy='merge',
+        tags = ["Bowlingcard"]
     )
 }}
 

@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DBT_TARGET: ci
+      DBT_TARGET: dev
       SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
@@ -54,7 +54,7 @@ jobs:
         working-directory: main
         run: |
           . ../.venv/bin/activate
-          dbt compile --target-path ../state_main --profiles-dir .github/profiles
+          dbt compile --target-path ../state_main --profiles-dir .
 
       # 3. Run slim CI using state from main
       - name: Slim CI build
@@ -65,4 +65,4 @@ jobs:
             --select "state:modified+1" \
             --state ../state_main \
             --defer --favor-state \
-            --profiles-dir .github/profiles
+            --profiles-dir .

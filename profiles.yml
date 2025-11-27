@@ -1,15 +1,17 @@
 SNOWFLAKE_DBT_T20:
-  target: "{{ env_var('TARGET','prod') }}"
+  target: "{{ env_var('DBT_TARGET', 'prod') }}"
   outputs:
     dev:
       type: snowflake
-      account: "{{ env_var('TARGET_ACC') }}"
-      user: "{{ env_var('TARGET_USER') }}"
-      password: "{{ env_var('TARGET_PASS') }}"
-      role: "{{ env_var('TARGET_ROLE') }}"
-      warehouse: "{{ env_var('TARGET_WH') }}"
-      database: "{{ env_var('TARGET_DB') }}"
-      schema: "{{ env_var('TARGET_SC') }}"
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA') }}"
+      threads: 4
+      client_session_keep_alive: False
       
     prod:
       type: snowflake
@@ -20,3 +22,5 @@ SNOWFLAKE_DBT_T20:
       warehouse: "{{ var('TARGET_WH','COMPUTE_WH') }}"
       database: "{{ var('TARGET_DB','SNOWFLAKE_SAMPLE_DATA') }}" #Sample Existing Database
       schema: "{{ var('TARGET_SC','INFORMATION_SCHEMA') }}" #Sample Existing Schema
+      threads: 4
+      client_session_keep_alive: False
