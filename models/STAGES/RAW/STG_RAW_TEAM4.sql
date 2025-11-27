@@ -3,7 +3,7 @@
         materialized='incremental',
         unique_key='TEAMID',
         incremental_strategy='merge',
-        tags=["inactive"]
+        tags=["team","inactive"]
     )
 }}
 

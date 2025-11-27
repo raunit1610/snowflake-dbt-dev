@@ -2,7 +2,7 @@
     config(
         materialized='incremental',
         incremental_strategy='append',
-        tags=["inactive"]
+        tags=["player","inactive"]
     )
 }}
 

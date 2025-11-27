@@ -2,7 +2,8 @@
     config(
         materialized='incremental',
         unique_key=['PLAYERID', 'TEAMID'],
-        incremental_strategy='merge'
+        incremental_strategy='merge',
+        tags = ["playerseason"]
     )
 }}
 
