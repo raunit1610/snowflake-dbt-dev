@@ -33,15 +33,15 @@ jobs:
           python-version: '3.11'
 
       - name: Create virtualenv
-        working-directory: .
         run: |
           python -m venv .venv
           . .venv/bin/activate
           pip install --upgrade "pip<24"
-          pip install "click==8.1.6"
-          pip install "dbt-snowflake==1.9.1"
-          # persist PATH so venv is active in later steps
-          echo "PATH=$PATH" >> $GITHUB_ENV
+          pip install click==8.1.6
+          pip install dbt-snowflake==1.9.1
+
+          # Persist PATH so venv python is available in later steps
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
 
       # 2. Checkout main and compile to create state manifest
       - name: Checkout main
@@ -53,14 +53,14 @@ jobs:
       - name: Compile main to state
         working-directory: main
         run: |
-          . ../.venv/bin/activate
+          . $GITHUB_WORKSPACE/.venv/bin/activate
           dbt compile --target-path ../state_main --profiles-dir .
 
       # 3. Run slim CI using state from main
       - name: Slim CI build
         working-directory: pr
         run: |
-          . ../.venv/bin/activate
+          . $GITHUB_WORKSPACE/.venv/bin/activate
           dbt build \
             --select "state:modified+1" \
             --state ../state_main \
@@ -70,13 +70,16 @@ jobs:
       #4. Install SnowSQL to DROP Database
       - name: Install SnowSQL
         run: |
-          . ../.venv/bin/activate
-          curl -O sfc-repo.snowflakecomputing.com
+          . $GITHUB_WORKSPACE/.venv/bin/activate
+
+          # Correct SnowSQL download URL
+          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.25-linux_x86_64.bash
+
           SNOWSQL_ENV_ACCEPT_LICENSES=Y bash snowsql-1.2.25-linux_x86_64.bash
-          # Add installation path to PATH or use the full path
+
           echo "$HOME/bin" >> $GITHUB_PATH
 
-      #5. Drop Slim_CI Schema After PR Verification Process
+      #5. Drop Slim_CI Database after PR build
       - name: Run DROP DATABASE command
         env:
           SNOWSQL_USER: ${{ secrets.SNOWFLAKE_USER }}
@@ -84,5 +87,5 @@ jobs:
           SNOWSQL_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           DB_NAME_TO_DROP: ${{ secrets.SNOWFLAKE_DATABASE_CI }}
         run: |
-          . ../.venv/bin/activate
+          . $GITHUB_WORKSPACE/.venv/bin/activate
           snowsql -q "DROP DATABASE IF EXISTS $DB_NAME_TO_DROP CASCADE;"
