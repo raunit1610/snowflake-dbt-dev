@@ -317,5 +317,6 @@ However:
 make dbt Cloud still superior for **enterprise-scale CI/CD**.
 
 > **Summary**
-> **Speed + Cost → Snowflake DBT**
+> **Speed + Cost → Snowflake DBT** ,
 > **Scalability + Automation → dbt Cloud**
+
