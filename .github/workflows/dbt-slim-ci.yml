@@ -66,3 +66,23 @@ jobs:
             --state ../state_main \
             --defer --favor-state \
             --profiles-dir .
+
+      #4. Install SnowSQL to DROP Database
+      - name: Install SnowSQL
+        run: |
+          . ../.venv/bin/activate
+          curl -O sfc-repo.snowflakecomputing.com
+          SNOWSQL_ENV_ACCEPT_LICENSES=Y bash snowsql-1.2.25-linux_x86_64.bash
+          # Add installation path to PATH or use the full path
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      #5. Drop Slim_CI Schema After PR Verification Process
+      - name: Run DROP DATABASE command
+        env:
+          SNOWSQL_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWSQL_PWD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWSQL_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          DB_NAME_TO_DROP: ${{ secrets.SNOWFLAKE_DATABASE_CI }}
+        run: |
+          . ../.venv/bin/activate
+          snowsql -q "DROP DATABASE IF EXISTS $DB_NAME_TO_DROP CASCADE;"
