@@ -73,7 +73,7 @@ jobs:
           . $GITHUB_WORKSPACE/.venv/bin/activate
 
           # Correct download with fail flag
-          curl -O --fail https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.25-linux_x86_64.bash
+          curl -O --fail https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql
 
           chmod +x snowsql-1.2.25-linux_x86_64.bash
 
