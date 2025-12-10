@@ -72,12 +72,17 @@ jobs:
         run: |
           . $GITHUB_WORKSPACE/.venv/bin/activate
 
-          # Correct SnowSQL download URL
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.25-linux_x86_64.bash
+          # Correct download with fail flag
+          curl -O --fail https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.25-linux_x86_64.bash
 
-          SNOWSQL_ENV_ACCEPT_LICENSES=Y bash snowsql-1.2.25-linux_x86_64.bash
+          chmod +x snowsql-1.2.25-linux_x86_64.bash
+
+          SNOWSQL_ENV_ACCEPT_LICENSES=Y \
+          SNOWSQL_RUN_LOGFILE=~/snowsql_run.log \
+          bash snowsql-1.2.25-linux_x86_64.bash
 
           echo "$HOME/bin" >> $GITHUB_PATH
+
 
       #5. Drop Slim_CI Database after PR build
       - name: Run DROP DATABASE command
