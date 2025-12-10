@@ -7,7 +7,7 @@
 
 WITH player_union as(
     {{ dbt_utils.union_relations(
-      relations = [ ref('STG_RAW_PLAYER1'), ref('STG_RAW_PLAYER6') ]
+      relations = [ ref('STG_RAW_PLAYER2'), ref('STG_RAW_PLAYER6') ]
   ) }}
 )
 
