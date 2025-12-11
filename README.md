@@ -1,6 +1,6 @@
 # 🌌 **Snowflake-Integrated DBT Core Implementation**
 
-*A Production-Ready Architecture, CI/CD & POC Guide*
+*A Architecture, CI/CD & POC Guide*
 
 <p align="center">
   <img src="assets/banner.png" width="100%" alt="Snowflake-Integrated DBT Core Implementation Banner"/>
