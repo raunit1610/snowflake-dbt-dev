@@ -1,3 +1,4 @@
+#Challenge: Require Empherical Database
 name: dbt-slim-ci
 
 on:
@@ -19,14 +20,14 @@ jobs:
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
 
     steps:
-      # 0. Checkout PR code first (current ref)
+      # 1. Checkout PR code first (current ref)
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
           path: pr
 
-      # 1. Set up Python and venv at workspace root
+      # 2. Set up Python and venv at workspace root
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -43,7 +44,7 @@ jobs:
           # persist PATH so venv is active in later steps
           echo "PATH=$PATH" >> $GITHUB_ENV
 
-      # 2. Checkout main and compile to create state manifest
+      # 3. Checkout main and compile to create state manifest
       - name: Checkout main
         uses: actions/checkout@v4
         with:
@@ -56,7 +57,7 @@ jobs:
           . ../.venv/bin/activate
           dbt compile --target-path ../state_main --profiles-dir .
 
-      # 3. Run slim CI using state from main
+      # 4. Run slim CI using state from main
       - name: Slim CI build
         working-directory: pr
         run: |
