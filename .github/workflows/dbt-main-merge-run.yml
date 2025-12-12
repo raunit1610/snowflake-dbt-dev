@@ -1,5 +1,5 @@
-#Challenge: Its Link Is Accessible by everyone through github pages
-name: Build and Publish dbt Docs (Venv)
+#Challenge: It Executes Entire DBT Project Everytime (State Management Required)
+name: Execute DBT on Main Merge (Venv)
 
 on:
   push:
@@ -48,24 +48,7 @@ jobs:
           source venv/bin/activate
           dbt deps --profiles-dir .
 
-      - name: Generate dbt docs
+      - name: Build dbt models
         run: |
           source venv/bin/activate
-          dbt docs generate --profiles-dir .
-
-      - name: Upload docs artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: target/
-
-  deploy:
-    needs: docs
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          dbt build --profiles-dir .
