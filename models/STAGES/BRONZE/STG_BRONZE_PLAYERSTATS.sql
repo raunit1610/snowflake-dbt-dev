@@ -3,7 +3,7 @@
         materialized='incremental',
         unique_key=['SEASON','MATCHID','TEAMID','PLAYERID'],
         incremental_strategy='merge',
-        tags = ["playerstats"]
+        tags = ["playerstats","bronze"]
     )
 }}
 
