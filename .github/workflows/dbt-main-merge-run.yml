@@ -1,4 +1,3 @@
-#Challenge: It Executes Entire DBT Project Everytime (State Management Required)
 name: Execute DBT on Main Merge (Venv)
 
 on:
@@ -11,7 +10,7 @@ permissions:
   id-token: write
 
 jobs:
-  docs:
+  execute-on-main:
     runs-on: ubuntu-latest
 
     env:
@@ -33,6 +32,18 @@ jobs:
         with:
           python-version: "3.10"
 
+      # -----------------------------
+      # Restore dbt state (target/)
+      # -----------------------------
+      - name: Restore dbt target cache
+        id: restore-dbt-cache
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-dbt-target-${{ github.ref_name }}
+          restore-keys: |
+            ${{ runner.os }}-dbt-target-
+
       - name: Create Virtual Environment
         run: |
           python -m venv venv
@@ -49,7 +60,20 @@ jobs:
           source venv/bin/activate
           dbt deps --profiles-dir .
 
-      - name: Build dbt models
+      # -----------------------------
+      # Conditional dbt execution
+      # -----------------------------
+      - name: Run dbt with state awareness
         run: |
           source venv/bin/activate
-          dbt build --profiles-dir .
+
+          if [ ! -d "target" ]; then
+            echo "No target directory found. Running FULL dbt build."
+            dbt build --profiles-dir .
+          else
+            echo "target directory found. Running STATE-AWARE build."
+            dbt build \
+              --profiles-dir . \
+              --state target \
+              --select state:modified+2
+          fi
