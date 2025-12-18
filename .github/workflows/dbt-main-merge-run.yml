@@ -35,13 +35,13 @@ jobs:
       # -----------------------------
       # Restore previous dbt state
       # -----------------------------
-      - name: Restore dbt previous state cache
-        id: restore-dbt-cache
+      - name: Restore dbt previous state
         uses: actions/cache@v4
         with:
           path: prev_state
-          key: ${{ runner.os }}-dbt-prev-state-${{ github.ref_name }}
+          key: ${{ runner.os }}-dbt-prev-state-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-dbt-prev-state-main
             ${{ runner.os }}-dbt-prev-state-
 
       - name: Create Virtual Environment
