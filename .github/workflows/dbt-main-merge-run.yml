@@ -75,5 +75,5 @@ jobs:
             dbt build \
               --profiles-dir . \
               --state target \
-              --select state:modified+2
+              --select state:modified+1
           fi
