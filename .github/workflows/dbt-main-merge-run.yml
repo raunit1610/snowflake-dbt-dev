@@ -77,3 +77,11 @@ jobs:
               --state prev_state \
               --select state:modified+1
           fi
+      # -----------------------------
+      # Prepare state for next run
+      # -----------------------------
+      - name: Prepare dbt state for next run
+        if: success()
+        run: |
+          rm -rf prev_state
+          mv target prev_state
