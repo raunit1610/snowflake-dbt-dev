@@ -33,16 +33,16 @@ jobs:
           python-version: "3.10"
 
       # -----------------------------
-      # Restore dbt state (target/)
+      # Restore previous dbt state
       # -----------------------------
-      - name: Restore dbt target cache
+      - name: Restore dbt previous state cache
         id: restore-dbt-cache
         uses: actions/cache@v4
         with:
-          path: target
-          key: ${{ runner.os }}-dbt-target-${{ github.ref_name }}
+          path: prev_state
+          key: ${{ runner.os }}-dbt-prev-state-${{ github.ref_name }}
           restore-keys: |
-            ${{ runner.os }}-dbt-target-
+            ${{ runner.os }}-dbt-prev-state-
 
       - name: Create Virtual Environment
         run: |
@@ -67,13 +67,13 @@ jobs:
         run: |
           source venv/bin/activate
 
-          if [ ! -d "target" ]; then
-            echo "No target directory found. Running FULL dbt build."
+          if [ ! -d "prev_state" ]; then
+            echo "No previous state found. Running FULL dbt build."
             dbt build --profiles-dir .
           else
-            echo "target directory found. Running STATE-AWARE build."
+            echo "Previous state found. Running STATE-AWARE build."
             dbt build \
               --profiles-dir . \
-              --state target \
+              --state prev_state \
               --select state:modified+1
           fi
