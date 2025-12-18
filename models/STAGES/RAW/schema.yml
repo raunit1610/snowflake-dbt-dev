@@ -152,6 +152,36 @@ models:
         constraints:
           - type: not_null
 
+  - name: STG_RAW_PLAYER6
+    description: ""
+    constraints:
+      - type: primary_key
+        columns: playerid
+    columns:
+      - name: playerid
+        data_type: number
+        description: ""
+      - name: playername
+        data_type: varchar
+        description: ""
+        constraints:
+          - type: not_null
+      - name: filename
+        data_type: varchar
+        description: ""
+        constraints:
+          - type: not_null
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+        constraints:
+          - type: not_null
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""
+        constraints:
+          - type: not_null
+
   - name: STG_RAW_PLAYERSEASON
     description: ""
     constraints:
