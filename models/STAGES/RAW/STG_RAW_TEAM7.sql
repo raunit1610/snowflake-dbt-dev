@@ -4,7 +4,7 @@
         unique_key='TEAMID',
         incremental_strategy='merge',
         tags=["team"],
-        enabled = false
+        enabled = true
     )
 }}
 
