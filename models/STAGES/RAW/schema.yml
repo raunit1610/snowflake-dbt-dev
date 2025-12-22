@@ -478,3 +478,31 @@ models:
       - name: _inserted_at_
         data_type: timestamp_ntz
         description: ""
+
+  - name: STG_RAW_TEAM6
+    description: ""
+    constraints:
+      - type: primary_key
+        columns: teamid
+    columns:
+      - name: teamid
+        data_type: number
+        description: ""
+      - name: teamname
+        data_type: varchar
+        description: ""
+        constraints:
+          - type: not_null
+      - name: filename
+        data_type: varchar
+        description: ""
+        constraints:
+          - type: not_null
+      - name: load_timestamp
+        data_type: timestamp_ntz
+        description: ""
+        constraints:
+          - type: not_null
+      - name: _inserted_at_
+        data_type: timestamp_ntz
+        description: ""
