@@ -103,7 +103,7 @@ jobs:
             dbt build \
               --profiles-dir . \
               --state prev_state \
-              --select state:modified+
+              --select state:modified+,state:new+
           fi
 
       # -----------------------------
