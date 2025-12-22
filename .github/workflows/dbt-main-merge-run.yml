@@ -6,8 +6,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   execute-on-main:
@@ -15,6 +13,8 @@ jobs:
 
     env:
       DBT_TARGET: dev
+
+      # Snowflake
       SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
@@ -22,6 +22,15 @@ jobs:
       SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE_PROD }}
       SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+
+      # AWS (STATIC KEYS)
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ap-south-1
+
+      # S3
+      DBT_ARTIFACT_BUCKET: ${{ secrets.DBT_ARTIFACT_BUCKET }}
+      DBT_STATE_KEY: ${{ secrets.DBT_STATE_KEY }}
 
     steps:
       - name: Checkout repository
@@ -33,27 +42,18 @@ jobs:
           python-version: "3.10"
 
       # -----------------------------
-      # Restore previous dbt state
+      # Create virtual environment
       # -----------------------------
-      - name: Restore dbt previous state cache
-        id: restore-dbt-cache
-        uses: actions/cache@v4
-        with:
-          path: prev_state
-          key: ${{ runner.os }}-dbt-prev-state-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-dbt-prev-state-
-
       - name: Create Virtual Environment
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
 
-      - name: Install dbt (Snowflake adapter)
+      - name: Install dbt and boto3
         run: |
           source venv/bin/activate
-          pip install dbt-core dbt-snowflake
+          pip install dbt-core dbt-snowflake boto3
 
       - name: Install dbt dependencies
         run: |
@@ -61,27 +61,68 @@ jobs:
           dbt deps --profiles-dir .
 
       # -----------------------------
-      # Conditional dbt execution
+      # Download previous manifest from S3
+      # -----------------------------
+      - name: Download previous dbt manifest (if exists)
+        run: |
+          source venv/bin/activate
+          mkdir -p prev_state
+
+          python <<EOF
+          import boto3, os
+          from botocore.exceptions import ClientError
+
+          s3 = boto3.client("s3", region_name=os.environ["AWS_REGION"])
+
+          bucket = os.environ["DBT_ARTIFACT_BUCKET"]
+          key = os.environ["DBT_STATE_KEY"]
+          local_path = "prev_state/manifest.json"
+
+          try:
+              s3.download_file(bucket, key, local_path)
+              print("✅ Previous manifest downloaded from S3")
+          except ClientError as e:
+              if e.response["Error"]["Code"] == "404":
+                  print("ℹ️ No previous manifest found. First run.")
+              else:
+                  raise
+          EOF
+
+      # -----------------------------
+      # dbt execution
       # -----------------------------
       - name: Run dbt with state awareness
         run: |
           source venv/bin/activate
 
-          if [ ! -d "prev_state" ]; then
-            echo "No previous state found. Running FULL dbt build."
+          if [ ! -f "prev_state/manifest.json" ]; then
+            echo "🚀 FIRST RUN → FULL dbt build"
             dbt build --profiles-dir .
           else
-            echo "Previous state found. Running STATE-AWARE build."
+            echo "♻️ STATE-AWARE RUN"
             dbt build \
               --profiles-dir . \
               --state prev_state \
-              --select state:modified+1
+              --select state:modified+
           fi
+
       # -----------------------------
-      # Prepare state for next run
+      # Upload new manifest to S3
       # -----------------------------
-      - name: Prepare dbt state for next run
+      - name: Upload dbt manifest to S3
         if: success()
         run: |
-          rm -rf prev_state
-          mv target prev_state
+          source venv/bin/activate
+
+          python <<EOF
+          import boto3, os
+
+          s3 = boto3.client("s3", region_name=os.environ["AWS_REGION"])
+
+          bucket = os.environ["DBT_ARTIFACT_BUCKET"]
+          key = os.environ["DBT_STATE_KEY"]
+          file_path = "target/manifest.json"
+
+          s3.upload_file(file_path, bucket, key)
+          print("✅ New manifest uploaded to S3")
+          EOF

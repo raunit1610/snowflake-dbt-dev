@@ -55,7 +55,7 @@ jobs:
         working-directory: main
         run: |
           . ../.venv/bin/activate
-          dbt compile --target-path ../state_main --profiles-dir .
+          dbt ls --target-path ../state_main --profiles-dir .
 
       # 4. Run slim CI using state from main
       - name: Slim CI build
