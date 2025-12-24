@@ -1,4 +1,4 @@
-#Challenge: Require Empherical Database
+# Challenge: Require Ephemeral Database
 name: dbt-slim-ci
 
 on:
@@ -11,6 +11,8 @@ jobs:
 
     env:
       DBT_TARGET: dev
+
+      # Snowflake (CI / Ephemeral)
       SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
@@ -20,50 +22,113 @@ jobs:
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
 
     steps:
-      # 1. Checkout PR code first (current ref)
+      # --------------------------------------------------
+      # 1. Checkout PR branch
+      # --------------------------------------------------
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
           path: pr
 
-      # 2. Set up Python and venv at workspace root
+      # --------------------------------------------------
+      # 2. Python + virtual environment
+      # --------------------------------------------------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Create virtualenv
-        working-directory: .
         run: |
           python -m venv .venv
           . .venv/bin/activate
           pip install --upgrade "pip<24"
           pip install "click==8.1.6"
           pip install "dbt-snowflake==1.9.1"
-          # persist PATH so venv is active in later steps
-          echo "PATH=$PATH" >> $GITHUB_ENV
 
-      # 3. Checkout main and compile to create state manifest
+      # --------------------------------------------------
+      # 3. Checkout main and create state manifest
+      # --------------------------------------------------
       - name: Checkout main
         uses: actions/checkout@v4
         with:
           ref: main
           path: main
 
-      - name: Compile main to state
+      - name: Compile main to create state
         working-directory: main
         run: |
           . ../.venv/bin/activate
-          dbt ls --target-path ../state_main --profiles-dir .
+          dbt ls \
+            --profiles-dir . \
+            --target-path ../state_main
 
-      # 4. Run slim CI using state from main
+      # --------------------------------------------------
+      # 4. Slim CI build (PR branch)
+      # --------------------------------------------------
       - name: Slim CI build
         working-directory: pr
         run: |
           . ../.venv/bin/activate
           dbt build \
-            --select "state:modified+1" \
+            --profiles-dir . \
             --state ../state_main \
-            --defer --favor-state \
-            --profiles-dir .
+            --select state:modified+,state:new+ \
+            --defer --favor-state
+
+      # --------------------------------------------------
+      # 5. Install SnowSQL (for cleanup)
+      # --------------------------------------------------
+      - name: Install SnowSQL
+        run: |
+          curl -sS -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.26-linux_x86_64.bash
+
+          # SnowSQL installer may exit non-zero in CI — ignore it
+          bash snowsql-1.2.26-linux_x86_64.bash || true
+
+          # Locate snowsql binary
+          find $HOME -name snowsql -type f
+
+          # Add common install locations to PATH
+          echo "$HOME/bin" >> $GITHUB_PATH
+          echo "$HOME/.snowsql" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      # --------------------------------------------------
+      # 6. Cleanup: Drop ephemeral Snowflake database
+      # --------------------------------------------------
+      - name: Cleanup ephemeral Snowflake database
+        if: always()
+        env:
+          SNOWSQL_PWD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+        run: |
+          # DO NOT fail early
+          set +e
+
+          echo "🔎 Locating snowsql binary..."
+          find $HOME -name snowsql -type f || true
+
+          # Try common locations explicitly
+          if [ -x "$HOME/bin/snowsql" ]; then
+            SNOWSQL="$HOME/bin/snowsql"
+          elif [ -x "$HOME/.snowsql/snowsql" ]; then
+            SNOWSQL="$HOME/.snowsql/snowsql"
+          elif [ -x "$HOME/.local/bin/snowsql" ]; then
+            SNOWSQL="$HOME/.local/bin/snowsql"
+          else
+            echo "❌ snowsql not found — skipping DB cleanup"
+            exit 0
+          fi
+
+          echo "✅ Using snowsql at: $SNOWSQL"
+          $SNOWSQL --version
+
+          echo "🧹 Dropping CI database: $SNOWFLAKE_DATABASE"
+
+          $SNOWSQL \
+            -a "$SNOWFLAKE_ACCOUNT" \
+            -u "$SNOWFLAKE_USER" \
+            -r "$SNOWFLAKE_ROLE" \
+            -w "$SNOWFLAKE_WAREHOUSE" \
+            -q "DROP DATABASE IF EXISTS ${SNOWFLAKE_DATABASE};"
