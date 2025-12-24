@@ -5,10 +5,13 @@ on:
     branches: ["main"]
 
 permissions:
-  contents: read
+  contents: write   # needed because state file is updated
 
 jobs:
-  execute-on-main:
+# ==========================================================
+# JOB 1: State-aware dbt run + generate target/manifest.json
+# ==========================================================
+  dbt-run:
     runs-on: ubuntu-latest
 
     env:
@@ -23,106 +26,102 @@ jobs:
       SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
 
-      # AWS (STATIC KEYS)
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ap-south-1
-
-      # S3
-      DBT_ARTIFACT_BUCKET: ${{ secrets.DBT_ARTIFACT_BUCKET }}
-      DBT_STATE_KEY: ${{ secrets.DBT_STATE_KEY }}
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      # -----------------------------
-      # Create virtual environment
-      # -----------------------------
       - name: Create Virtual Environment
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
+          pip install dbt-core dbt-snowflake
 
-      - name: Install dbt and boto3
-        run: |
-          source venv/bin/activate
-          pip install dbt-core dbt-snowflake boto3
-
-      - name: Install dbt dependencies
+      - name: Install dbt deps
         run: |
           source venv/bin/activate
           dbt deps --profiles-dir .
 
       # -----------------------------
-      # Download previous manifest from S3
+      # Ensure state_path exists
       # -----------------------------
-      - name: Download previous dbt manifest (if exists)
-        run: |
-          source venv/bin/activate
-          mkdir -p prev_state
-
-          python <<EOF
-          import boto3, os
-          from botocore.exceptions import ClientError
-
-          s3 = boto3.client("s3", region_name=os.environ["AWS_REGION"])
-
-          bucket = os.environ["DBT_ARTIFACT_BUCKET"]
-          key = os.environ["DBT_STATE_KEY"]
-          local_path = "prev_state/manifest.json"
-
-          try:
-              s3.download_file(bucket, key, local_path)
-              print("✅ Previous manifest downloaded from S3")
-          except ClientError as e:
-              if e.response["Error"]["Code"] == "404":
-                  print("ℹ️ No previous manifest found. First run.")
-              else:
-                  raise
-          EOF
+      - name: Prepare state folder
+        run: mkdir -p state_path
 
       # -----------------------------
-      # dbt execution
+      # Validate state using dbt ls
       # -----------------------------
-      - name: Run dbt with state awareness
+      - name: Validate state graph
         run: |
           source venv/bin/activate
 
-          if [ ! -f "prev_state/manifest.json" ]; then
-            echo "🚀 FIRST RUN → FULL dbt build"
-            dbt build --profiles-dir .
-          else
-            echo "♻️ STATE-AWARE RUN"
-            dbt build \
+          if [ -f "state_path/manifest.json" ]; then
+            echo "♻️ Existing state detected → validating with dbt ls"
+            dbt ls \
               --profiles-dir . \
-              --state prev_state \
+              --state state_path \
               --select state:modified+,state:new+
+          else
+            echo "🚀 No previous state → skipping state validation"
           fi
 
       # -----------------------------
-      # Upload new manifest to S3
+      # dbt execution (creates target/manifest.json)
       # -----------------------------
-      - name: Upload dbt manifest to S3
-        if: success()
+      - name: Run dbt build
         run: |
           source venv/bin/activate
 
-          python <<EOF
-          import boto3, os
+          if [ -f "state_path/manifest.json" ]; then
+            dbt build \
+              --profiles-dir . \
+              --state state_path \
+              --select state:modified+,state:new+
+          else
+            dbt build --profiles-dir .
+          fi
 
-          s3 = boto3.client("s3", region_name=os.environ["AWS_REGION"])
+      # -----------------------------
+      # Upload manifest for Job 2
+      # -----------------------------
+      - name: Upload new manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: new-manifest
+          path: target/manifest.json
 
-          bucket = os.environ["DBT_ARTIFACT_BUCKET"]
-          key = os.environ["DBT_STATE_KEY"]
-          file_path = "target/manifest.json"
+# ==========================================================
+# JOB 2: Update state_path/manifest.json
+# ==========================================================
+  update-state:
+    needs: dbt-run
+    runs-on: ubuntu-latest
 
-          s3.upload_file(file_path, bucket, key)
-          print("✅ New manifest uploaded to S3")
-          EOF
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download new manifest
+        uses: actions/download-artifact@v4
+        with:
+          name: new-manifest
+          path: target
+
+      - name: Update state_path
+        run: |
+          mkdir -p state_path
+          cp target/manifest.json state_path/manifest.json
+
+      - name: Commit updated state
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add state_path/manifest.json
+          git commit -m "Update dbt state manifest [CI]" || echo "No changes"
+          git push
