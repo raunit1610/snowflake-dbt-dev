@@ -56,7 +56,7 @@ jobs:
       # -----------------------------
       # Validate state using dbt ls
       # -----------------------------
-      - name: Validate state graph
+      - name: Validate state graph for modified state
         run: |
           source venv/bin/activate
 
@@ -65,7 +65,21 @@ jobs:
             dbt ls \
               --profiles-dir . \
               --state state_path \
-              --select state:modified+,state:new+
+              --select state:modified+
+          else
+            echo "🚀 No previous state → skipping state validation"
+          fi
+      
+      - name: Validate state graph for new state
+        run: |
+          source venv/bin/activate
+
+          if [ -f "state_path/manifest.json" ]; then
+            echo "♻️ Existing state detected → validating with dbt ls"
+            dbt ls \
+              --profiles-dir . \
+              --state state_path \
+              --select state:new+
           else
             echo "🚀 No previous state → skipping state validation"
           fi
@@ -73,7 +87,7 @@ jobs:
       # -----------------------------
       # dbt execution (creates target/manifest.json)
       # -----------------------------
-      - name: Run dbt build
+      - name: Run dbt build for Modified state
         run: |
           source venv/bin/activate
 
@@ -81,7 +95,20 @@ jobs:
             dbt build \
               --profiles-dir . \
               --state state_path \
-              --select state:modified+,state:new+
+              --select state:modified+
+          else
+            dbt build --profiles-dir .
+          fi
+
+      - name: Run dbt build for Modified state
+        run: |
+          source venv/bin/activate
+
+          if [ -f "state_path/manifest.json" ]; then
+            dbt build \
+              --profiles-dir . \
+              --state state_path \
+              --select state:new+
           else
             dbt build --profiles-dir .
           fi
