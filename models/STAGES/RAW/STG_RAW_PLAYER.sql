@@ -25,7 +25,8 @@ deduped AS (
         MAX(_inserted_at_) AS _inserted_at_,
         MAX(_inserted_at_2) AS _inserted_at_2,
         MAX(_inserted_at_3) AS _inserted_at_3,
-        MAX(_inserted_at_4) AS _inserted_at_4
+        MAX(_inserted_at_4) AS _inserted_at_4,
+        MAX(_inserted_at_4) AS _inserted_at_5
     FROM source_data
     GROUP BY PLAYERID
 )
