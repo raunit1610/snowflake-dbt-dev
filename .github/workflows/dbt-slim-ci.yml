@@ -82,11 +82,18 @@ jobs:
       # --------------------------------------------------
       - name: Install SnowSQL
         run: |
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.26-linux_x86_64.bash
-          bash snowsql-1.2.26-linux_x86_64.bash
+          curl -sS -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.26-linux_x86_64.bash
 
-          # Add SnowSQL to PATH for subsequent steps
+          # SnowSQL installer may exit non-zero in CI — ignore it
+          bash snowsql-1.2.26-linux_x86_64.bash || true
+
+          # Locate snowsql binary
+          find $HOME -name snowsql -type f
+
+          # Add common install locations to PATH
           echo "$HOME/bin" >> $GITHUB_PATH
+          echo "$HOME/.snowsql" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       # --------------------------------------------------
       # 6. Cleanup: Drop ephemeral Snowflake database
@@ -96,11 +103,16 @@ jobs:
         env:
           SNOWSQL_PWD: ${{ secrets.SNOWFLAKE_PASSWORD }}
         run: |
+          set -e
+
+          which snowsql
+          snowsql --version
+
           echo "🧹 Dropping CI database: $SNOWFLAKE_DATABASE"
 
-          $HOME/bin/snowsql \
-          -a "$SNOWFLAKE_ACCOUNT" \
-          -u "$SNOWFLAKE_USER" \
-          -r "$SNOWFLAKE_ROLE" \
-          -w "$SNOWFLAKE_WAREHOUSE" \
-          -q "DROP DATABASE IF EXISTS ${SNOWFLAKE_DATABASE};"
+          snowsql \
+            -a "$SNOWFLAKE_ACCOUNT" \
+            -u "$SNOWFLAKE_USER" \
+            -r "$SNOWFLAKE_ROLE" \
+            -w "$SNOWFLAKE_WAREHOUSE" \
+            -q "DROP DATABASE IF EXISTS ${SNOWFLAKE_DATABASE};"
