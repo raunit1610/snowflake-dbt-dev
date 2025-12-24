@@ -44,7 +44,7 @@ jobs:
       - name: Detect changed reports
         run: |
           git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-            | grep '^SNOWFLAKE_DBT_T20/.*/.*\.txt$' \
+            | grep '^SNOWFLAKE_DBT_T20/.*/.*\.dat$' \
             | awk -F/ '{print $2}' \
             | sort -u > changed_reports.txt
 
