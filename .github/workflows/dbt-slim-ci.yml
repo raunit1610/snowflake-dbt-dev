@@ -85,6 +85,9 @@ jobs:
           curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.26-linux_x86_64.bash
           bash snowsql-1.2.26-linux_x86_64.bash
 
+          # Add SnowSQL to PATH for subsequent steps
+          echo "$HOME/bin" >> $GITHUB_PATH
+
       # --------------------------------------------------
       # 6. Cleanup: Drop ephemeral Snowflake database
       # --------------------------------------------------
@@ -95,9 +98,9 @@ jobs:
         run: |
           echo "🧹 Dropping CI database: $SNOWFLAKE_DATABASE"
 
-          snowsql \
-            -a "$SNOWFLAKE_ACCOUNT" \
-            -u "$SNOWFLAKE_USER" \
-            -r "$SNOWFLAKE_ROLE" \
-            -w "$SNOWFLAKE_WAREHOUSE" \
-            -q "DROP DATABASE IF EXISTS ${SNOWFLAKE_DATABASE};"
+          $HOME/bin/snowsql \
+          -a "$SNOWFLAKE_ACCOUNT" \
+          -u "$SNOWFLAKE_USER" \
+          -r "$SNOWFLAKE_ROLE" \
+          -w "$SNOWFLAKE_WAREHOUSE" \
+          -q "DROP DATABASE IF EXISTS ${SNOWFLAKE_DATABASE};"
