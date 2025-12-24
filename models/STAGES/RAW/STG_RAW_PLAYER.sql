@@ -12,7 +12,8 @@ WITH source_data AS (
         CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP())::TIMESTAMP_NTZ AS _inserted_at_,
         CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP())::TIMESTAMP_NTZ AS _inserted_at_2,
         CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP())::TIMESTAMP_NTZ AS _inserted_at_3,
-        CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP())::TIMESTAMP_NTZ AS _inserted_at_4
+        CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP())::TIMESTAMP_NTZ AS _inserted_at_4,
+        CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP())::TIMESTAMP_NTZ AS _inserted_at_5
     FROM {{ source('t20_database', 'players') }}
 ),
 
@@ -26,7 +27,7 @@ deduped AS (
         MAX(_inserted_at_2) AS _inserted_at_2,
         MAX(_inserted_at_3) AS _inserted_at_3,
         MAX(_inserted_at_4) AS _inserted_at_4,
-        MAX(_inserted_at_4) AS _inserted_at_5
+        MAX(_inserted_at_5) AS _inserted_at_5
     FROM source_data
     GROUP BY PLAYERID
 )
