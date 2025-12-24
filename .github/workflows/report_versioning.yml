@@ -1,8 +1,11 @@
-name: Per-Report Versioning (Conventional Commits)
+name: Per-Report Versioning (txt trigger)
 
 on:
   push:
     branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   version-reports:
@@ -13,6 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
+      # 1. Determine version bump from commit message
       - name: Determine version bump
         id: bump
         run: |
@@ -29,23 +33,25 @@ jobs:
             exit 0
           fi
 
+      # 2. Find changed report folders via *.txt files
       - name: Detect changed reports
         id: reports
         run: |
           git diff --name-only HEAD~1 HEAD \
-            | grep '^reports/' \
-            | cut -d/ -f2 \
-            | sort -u > reports.txt
+            | grep '^SNOWFLAKE_DBT_T20/.*/.*\.txt$' \
+            | awk -F/ '{print $2}' \
+            | sort -u > changed_reports.txt
 
-          cat reports.txt
+          cat changed_reports.txt
 
-      - name: Bump versions & changelogs
+      # 3. Update version & changelog
+      - name: Update versions
         run: |
           TYPE="${{ steps.bump.outputs.type }}"
           DATE=$(date +"%Y-%m-%d")
 
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@users.noreply.github.com"
 
           while read REPORT; do
             VERSION="reports/$REPORT/version.txt"
@@ -53,25 +59,26 @@ jobs:
 
             [ ! -f "$VERSION" ] && continue
 
-            CUR=$(cat $VERSION)
+            CUR=$(cat "$VERSION")
             IFS='.' read MAJOR MINOR PATCH <<< "$CUR"
 
-            case $TYPE in
+            case "$TYPE" in
               major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
               minor) MINOR=$((MINOR+1)); PATCH=0 ;;
               patch) PATCH=$((PATCH+1)) ;;
             esac
 
             NEW="$MAJOR.$MINOR.$PATCH"
+            echo "$NEW" > "$VERSION"
 
-            echo "$NEW" > $VERSION
+            echo -e "\n## $NEW ($DATE)\n- $(git log -1 --pretty=%s)" >> "$CHANGELOG"
 
-            echo -e "\n## $NEW ($DATE)\n- $(git log -1 --pretty=%s)" >> $CHANGELOG
-
-            git add $VERSION $CHANGELOG
+            git add "$VERSION" "$CHANGELOG"
             git tag "$REPORT-v$NEW"
 
-          done < reports.txt
+          done < changed_reports.txt
+
+          rm -f changed_reports.txt
 
           git commit -m "chore: bump report versions" || echo "No changes"
           git push --follow-tags
