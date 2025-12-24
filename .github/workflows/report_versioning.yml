@@ -12,11 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 1. Determine version bump from commit message
+      # 1️⃣ Detect version bump from commit message
       - name: Determine version bump
         id: bump
         run: |
@@ -29,23 +30,29 @@ jobs:
           elif echo "$MSG" | grep -q "^fix:"; then
             echo "type=patch" >> $GITHUB_OUTPUT
           else
-            echo "No version bump required"
+            echo "No version bump keyword found"
             exit 0
           fi
 
-      # 2. Find changed report folders via *.txt files
-      - name: Detect changed reports
-        id: reports
+      # 2️⃣ Debug: show changed files (VERY IMPORTANT)
+      - name: Debug changed files
         run: |
-          git diff --name-only HEAD~1 HEAD \
+          echo "Files changed in this push:"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
+
+      # 3️⃣ Detect changed report folders via *.txt files
+      - name: Detect changed reports
+        run: |
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
             | grep '^SNOWFLAKE_DBT_T20/.*/.*\.txt$' \
             | awk -F/ '{print $2}' \
             | sort -u > changed_reports.txt
 
-          cat changed_reports.txt
+          echo "Changed reports:"
+          cat changed_reports.txt || echo "None"
 
-      # 3. Update version & changelog
-      - name: Update versions
+      # 4️⃣ Update version.txt & changelog.md
+      - name: Update versions and changelogs
         run: |
           TYPE="${{ steps.bump.outputs.type }}"
           DATE=$(date +"%Y-%m-%d")
@@ -54,10 +61,13 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
 
           while read REPORT; do
-            VERSION="reports/$REPORT/version.txt"
-            CHANGELOG="reports/$REPORT/changelog.md"
+            VERSION="SNOWFLAKE_DBT_T20/$REPORT/version.txt"
+            CHANGELOG="SNOWFLAKE_DBT_T20/$REPORT/changelog.md"
 
-            [ ! -f "$VERSION" ] && continue
+            if [ ! -f "$VERSION" ]; then
+              echo "Skipping $REPORT (no version.txt)"
+              continue
+            fi
 
             CUR=$(cat "$VERSION")
             IFS='.' read MAJOR MINOR PATCH <<< "$CUR"
@@ -80,5 +90,5 @@ jobs:
 
           rm -f changed_reports.txt
 
-          git commit -m "chore: bump report versions" || echo "No changes"
+          git commit -m "chore: bump report versions" || echo "No version updates"
           git push --follow-tags
