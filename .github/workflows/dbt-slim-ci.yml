@@ -103,14 +103,30 @@ jobs:
         env:
           SNOWSQL_PWD: ${{ secrets.SNOWFLAKE_PASSWORD }}
         run: |
-          set -e
+          # DO NOT fail early
+          set +e
 
-          which snowsql
-          snowsql --version
+          echo "🔎 Locating snowsql binary..."
+          find $HOME -name snowsql -type f || true
+
+          # Try common locations explicitly
+          if [ -x "$HOME/bin/snowsql" ]; then
+            SNOWSQL="$HOME/bin/snowsql"
+          elif [ -x "$HOME/.snowsql/snowsql" ]; then
+            SNOWSQL="$HOME/.snowsql/snowsql"
+          elif [ -x "$HOME/.local/bin/snowsql" ]; then
+            SNOWSQL="$HOME/.local/bin/snowsql"
+          else
+            echo "❌ snowsql not found — skipping DB cleanup"
+            exit 0
+          fi
+
+          echo "✅ Using snowsql at: $SNOWSQL"
+          $SNOWSQL --version
 
           echo "🧹 Dropping CI database: $SNOWFLAKE_DATABASE"
 
-          snowsql \
+          $SNOWSQL \
             -a "$SNOWFLAKE_ACCOUNT" \
             -u "$SNOWFLAKE_USER" \
             -r "$SNOWFLAKE_ROLE" \
