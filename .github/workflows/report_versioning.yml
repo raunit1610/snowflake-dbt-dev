@@ -101,11 +101,11 @@ jobs:
             echo -e "## $NEW ($DATE)\n- $CLEAN_MSG" >> "$CHANGELOG"
 
             git add "$VERSION" "$CHANGELOG"
-            git tag "$REPORT-v$NEW"
+            git tag -a "$REPORT-v$NEW" -m "$REPORT version $NEW"
 
           done < changed_reports.txt
 
           rm -f changed_reports.txt
 
           git commit -m "chore: bump report versions" || echo "No changes"
-          git push --follow-tags
+          git push --tags
