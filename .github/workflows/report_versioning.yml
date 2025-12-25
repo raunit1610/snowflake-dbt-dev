@@ -108,4 +108,4 @@ jobs:
           rm -f changed_reports.txt
 
           git commit -m "chore: bump report versions" || echo "No changes"
-          git push --tags
+          git push --follow-tags
