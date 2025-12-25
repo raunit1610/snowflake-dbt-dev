@@ -70,7 +70,9 @@ jobs:
           CLEAN_MSG=$(echo "$RAW_MSG" \
             | grep -v "^Merge pull request" \
             | grep -v "^Merge branch" \
-            | sed -E 's/^(feat|fix|chore|docs|refactor|test|perf)!?:[[:space:]]*//')
+            | sed -E 's/^(feat|fix|chore|docs|refactor|test|perf)!?:[[:space:]]*//' \
+            | sed '/^[[:space:]]*$/d' \
+            | head -n 1)
 
           [ -z "$CLEAN_MSG" ] && CLEAN_MSG="Version update"
 
@@ -95,7 +97,8 @@ jobs:
             NEW="$MAJOR.$MINOR.$PATCH"
             echo "$NEW" > "$VERSION"
 
-            echo -e "\n## $NEW ($DATE)\n- $CLEAN_MSG" >> "$CHANGELOG"
+            [ -s "$CHANGELOG" ] && echo >> "$CHANGELOG"
+            echo -e "## $NEW ($DATE)\n- $CLEAN_MSG" >> "$CHANGELOG"
 
             git add "$VERSION" "$CHANGELOG"
             git tag "$REPORT-v$NEW"
