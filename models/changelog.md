@@ -5,3 +5,5 @@
 
 ## 0.1.1 (2025-12-25)
 - Merge pull request #58 from raunit1610/test-slimci-1
+## 0.1.2 (2025-12-25)
+- minor changes in A.dat
