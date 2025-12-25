@@ -65,6 +65,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions@users.noreply.github.com"
 
+          RAW_MSG="$(git log -1 --pretty=%B)"
+
+          CLEAN_MSG=$(echo "$RAW_MSG" \
+            | grep -v "^Merge pull request" \
+            | grep -v "^Merge branch" \
+            | sed -E 's/^(feat|fix|chore|docs|refactor|test|perf)!?:[[:space:]]*//')
+
+          [ -z "$CLEAN_MSG" ] && CLEAN_MSG="Version update"
+
           while read REPORT; do
             VERSION="$REPORT/version.txt"
             CHANGELOG="$REPORT/changelog.md"
@@ -86,7 +95,7 @@ jobs:
             NEW="$MAJOR.$MINOR.$PATCH"
             echo "$NEW" > "$VERSION"
 
-            echo -e "\n## $NEW ($DATE)\n- $(git log -1 --pretty=%s)" >> "$CHANGELOG"
+            echo -e "\n## $NEW ($DATE)\n- $CLEAN_MSG" >> "$CHANGELOG"
 
             git add "$VERSION" "$CHANGELOG"
             git tag "$REPORT-v$NEW"
