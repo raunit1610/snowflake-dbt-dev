@@ -31,7 +31,7 @@ jobs:
         run: |
           COMMITS=$(git log origin/main~1..HEAD --pretty=%B)
 
-          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+          if echo "$COMMITS" | grep -q "^BREAKING_CHANGE:"; then
             echo "type=major" >> $GITHUB_OUTPUT
           elif echo "$COMMITS" | grep -q "^feat:"; then
             echo "type=minor" >> $GITHUB_OUTPUT
