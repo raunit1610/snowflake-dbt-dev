@@ -29,7 +29,7 @@ def changed_reports():
     return sorted({
         Path(f).parts[1]
         for f in files
-        if f.startswith("reports/") and f.endswith(".dat")
+        if f.startswith("SNOWFLAKE_DBT_T20/") and f.endswith(".dat")
     })
 
 def bump_version(version, bump):
@@ -51,7 +51,7 @@ def main():
     today = date.today().isoformat()
 
     for report in changed_reports():
-        base = Path("reports") / report
+        base = Path("SNOWFLAKE_DBT_T20") / report
         version_file = base / "version.txt"
         changelog = base / "CHANGELOG.md"
 
