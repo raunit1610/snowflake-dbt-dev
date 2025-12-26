@@ -16,7 +16,7 @@ def get_commits():
     return run(["git", "log", "--pretty=%H|%s", "origin/main~1..HEAD"]).splitlines()
 
 def bump_type(commits):
-    if any("BREAKING CHANGE" in c for c in commits):
+    if any(c.split("|")[1].startswith("BREAKING_CHANGE:") for c in commits):
         return "major", "Breaking Change"
     if any(c.split("|")[1].startswith("feat:") for c in commits):
         return "minor", "Feature"
