@@ -1,4 +1,4 @@
-name: Report-Level Semantic Versioning
+name: Report Level Versioning
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 jobs:
-  version-reports:
+  version:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,23 +17,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch main
+        run: git fetch origin main
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install versioning libraries
-        run: |
-          pip install python-semantic-release gitpython
-
-      - name: Run report versioning orchestrator
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/report_versioning.py
+      - name: Run report versioning
+        run: python scripts/report_versioning.py
 
       - name: Push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions@users.noreply.github.com"
-          git push
+          git push --follow-tags

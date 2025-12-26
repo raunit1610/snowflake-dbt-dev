@@ -1,53 +1,78 @@
-from git import Repo
-from semantic_release.version import Version
-from semantic_release.history import get_commit_parser
-from datetime import datetime
-import os
+import subprocess
+import sys
+from pathlib import Path
+from datetime import date
 
-repo = Repo(".")
-commits = list(repo.iter_commits("origin/main~1..HEAD"))
+REPO_URL = subprocess.check_output(
+    ["git", "config", "--get", "remote.origin.url"],
+    text=True
+).strip().replace(".git", "")
 
-# 1️⃣ Decide highest version bump
-bump = "none"
-for c in commits:
-    msg = c.message
-    if msg.startswith("BREAKING_CHANGE:") in msg:
-        bump = "major"
-        break
-    elif msg.startswith("feat:") and bump != "major":
-        bump = "minor"
-    elif msg.startswith("fix:") and bump not in ["major", "minor"]:
-        bump = "patch"
+def run(cmd):
+    return subprocess.check_output(cmd, text=True).strip()
 
-if bump == "none":
-    exit(0)
+def get_commits():
+    # All commits introduced by the merge
+    return run(["git", "log", "--pretty=%H|%s", "origin/main~1..HEAD"]).splitlines()
 
-# 2️⃣ Detect changed reports
-changed_files = repo.git.diff("origin/main~1", "HEAD", name_only=True).splitlines()
-reports = {f.split("/")[0] for f in changed_files if f.endswith(".dat")}
+def bump_type(commits):
+    if any("BREAKING CHANGE" in c for c in commits):
+        return "major", "Breaking Change"
+    if any(c.split("|")[1].startswith("feat:") for c in commits):
+        return "minor", "Feature"
+    if any(c.split("|")[1].startswith("fix:") for c in commits):
+        return "patch", "Bug Fix"
+    return None, None
 
-# 3️⃣ Update each report
-for report in reports:
-    version_file = f"{report}/version.txt"
-    changelog = f"{report}/CHANGELOG.md"
+def changed_reports():
+    files = run(["git", "diff", "--name-only", "origin/main~1", "HEAD"]).splitlines()
+    return sorted({
+        Path(f).parts[1]
+        for f in files
+        if f.startswith("reports/") and f.endswith(".dat")
+    })
 
-    if not os.path.exists(version_file):
-        continue
+def bump_version(version, bump):
+    major, minor, patch = map(int, version.split("."))
+    if bump == "major":
+        return f"{major+1}.0.0"
+    if bump == "minor":
+        return f"{major}.{minor+1}.0"
+    return f"{major}.{minor}.{patch+1}"
 
-    current = Version.parse(open(version_file).read().strip())
-    new = current.bump(bump)
+def main():
+    commits = get_commits()
+    bump, label = bump_type(commits)
 
-    open(version_file, "w").write(str(new))
+    if not bump:
+        print("No version keyword found. Skipping.")
+        return
 
-    with open(changelog, "a") as cl:
-        cl.write(f"\n## {new} ({datetime.utcnow().date()})\n")
-        for c in commits:
-            cl.write(
-                f"- {'Reporting' if 'feat:' in c.message else 'Bug-fixing'}: "
-                f"{c.message.strip()}\n"
-                f"  Commit: {c.hexsha}\n"
-            )
+    today = date.today().isoformat()
 
-    repo.git.add(version_file, changelog)
+    for report in changed_reports():
+        base = Path("reports") / report
+        version_file = base / "version.txt"
+        changelog = base / "CHANGELOG.md"
 
-repo.index.commit("chore: report-level version bump")
+        if not version_file.exists():
+            continue
+
+        new_version = bump_version(version_file.read_text().strip(), bump)
+        version_file.write_text(new_version)
+
+        with changelog.open("a") as f:
+            f.write(f"\n## {new_version} ({today})\n")
+            for c in commits:
+                sha, msg = c.split("|", 1)
+                clean = msg.split(":", 1)[-1].strip()
+                f.write(
+                    f"- **{label}**: {clean} "
+                    f"([`{sha[:7]}`]({REPO_URL}/commit/{sha}))\n"
+                )
+
+        run(["git", "add", str(version_file), str(changelog)])
+        run(["git", "tag", f"{report}-v{new_version}"])
+
+if __name__ == "__main__":
+    main()
