@@ -1,4 +1,4 @@
-name: Per-Report Versioning (.dat trigger)
+name: Report-Level Semantic Versioning
 
 on:
   push:
@@ -12,100 +12,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 1️⃣ Fetch main explicitly
-      - name: Fetch main branch
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install versioning libraries
         run: |
-          git fetch origin main --prune
+          pip install python-semantic-release gitpython
 
-      # 2️⃣ Debug changed files
-      - name: Debug changed files
+      - name: Run report versioning orchestrator
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Changed files:"
-          git diff --name-only origin/main~1 HEAD
+          python scripts/report_versioning.py
 
-      # 3️⃣ Determine version bump
-      - name: Determine version bump
-        id: bump
+      - name: Push changes
         run: |
-          MSG="$(git log -1 --pretty=%B)"
-
-          if echo "$MSG" | grep -q "^BREAKING_CHANGE:"; then
-            echo "type=major" >> $GITHUB_OUTPUT
-          elif echo "$MSG" | grep -q "^feat:"; then
-            echo "type=minor" >> $GITHUB_OUTPUT
-          elif echo "$MSG" | grep -q "^fix:"; then
-            echo "type=patch" >> $GITHUB_OUTPUT
-          else
-            echo "No version bump keyword found"
-            exit 0
-          fi
-
-      # 4️⃣ Detect changed reports (folder-based)
-      - name: Detect changed reports
-        run: |
-          git diff --name-only origin/main~1 HEAD \
-            | grep '\.dat$' \
-            | awk -F/ '{print $1}' \
-            | sort -u > changed_reports.txt
-
-          echo "Changed reports:"
-          cat changed_reports.txt || echo "None"
-
-      # 5️⃣ Update version.txt & changelog.md
-      - name: Update versions and changelogs
-        run: |
-          TYPE="${{ steps.bump.outputs.type }}"
-          DATE=$(date +"%Y-%m-%d")
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions@users.noreply.github.com"
-
-          RAW_MSG="$(git log -1 --pretty=%B)"
-
-          CLEAN_MSG=$(echo "$RAW_MSG" \
-            | grep -v "^Merge pull request" \
-            | grep -v "^Merge branch" \
-            | sed -E 's/^(feat|fix|chore|docs|refactor|test|perf)!?:[[:space:]]*//' \
-            | sed '/^[[:space:]]*$/d' \
-            | head -n 1)
-
-          [ -z "$CLEAN_MSG" ] && CLEAN_MSG="Version update"
-
-          while read REPORT; do
-            VERSION="$REPORT/version.txt"
-            CHANGELOG="$REPORT/changelog.md"
-
-            if [ ! -f "$VERSION" ]; then
-              echo "Skipping $REPORT (no version.txt)"
-              continue
-            fi
-
-            CUR=$(cat "$VERSION")
-            IFS='.' read MAJOR MINOR PATCH <<< "$CUR"
-
-            case "$TYPE" in
-              major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
-              minor) MINOR=$((MINOR+1)); PATCH=0 ;;
-              patch) PATCH=$((PATCH+1)) ;;
-            esac
-
-            NEW="$MAJOR.$MINOR.$PATCH"
-            echo "$NEW" > "$VERSION"
-
-            [ -s "$CHANGELOG" ] && echo >> "$CHANGELOG"
-            echo -e "## $NEW ($DATE)\n- $CLEAN_MSG" >> "$CHANGELOG"
-
-            git add "$VERSION" "$CHANGELOG"
-            git tag -a "$REPORT-v$NEW" -m "$REPORT version $NEW"
-
-          done < changed_reports.txt
-
-          rm -f changed_reports.txt
-
-          git commit -m "chore: bump report versions" || echo "No changes"
-          git push --follow-tags
+          git push
