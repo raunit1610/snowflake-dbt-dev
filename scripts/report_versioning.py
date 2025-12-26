@@ -11,7 +11,7 @@ commits = list(repo.iter_commits("origin/main~1..HEAD"))
 bump = "none"
 for c in commits:
     msg = c.message
-    if "BREAKING CHANGE" in msg:
+    if msg.startswith("BREAKING_CHANGE:") in msg:
         bump = "major"
         break
     elif msg.startswith("feat:") and bump != "major":
