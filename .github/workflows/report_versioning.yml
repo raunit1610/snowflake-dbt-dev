@@ -1,4 +1,4 @@
-name: Per-Report Versioning (.dat trigger)
+name: Per-Report Versioning
 
 on:
   push:
@@ -20,39 +20,41 @@ jobs:
       - name: Fetch main
         run: git fetch origin main --prune
 
-      # 1️⃣ Detect changed files
-      - name: Detect changed files
+      # 1️⃣ Define commit range safely
+      - name: Define commit range
+        id: range
         run: |
-          git diff --name-only origin/main~1 HEAD
+          BASE=$(git rev-parse HEAD~1)
+          echo "base=$BASE" >> $GITHUB_OUTPUT
 
-      # 2️⃣ Determine highest version bump from ALL commits
-      - name: Determine version bump (multi-commit aware)
+      # 2️⃣ Determine highest version bump (multi-commit aware)
+      - name: Determine version bump
         id: bump
         run: |
-          COMMITS=$(git log origin/main~1..HEAD --pretty=%B)
+          COMMITS=$(git log ${{ steps.range.outputs.base }}..HEAD --pretty=%B)
 
-          if echo "$COMMITS" | grep -q "^BREAKING_CHANGE:"; then
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
             echo "type=major" >> $GITHUB_OUTPUT
           elif echo "$COMMITS" | grep -q "^feat:"; then
             echo "type=minor" >> $GITHUB_OUTPUT
           elif echo "$COMMITS" | grep -q "^fix:"; then
             echo "type=patch" >> $GITHUB_OUTPUT
           else
-            echo "No version bump keyword found"
+            echo "No version bump needed"
             exit 0
           fi
 
-      # 3️⃣ Detect changed reports
+      # 3️⃣ Detect changed reports (any file type)
       - name: Detect changed reports
         run: |
-          git diff --name-only origin/main~1 HEAD \
-            | awk -F/ '{print $1}' \
+          git diff --name-only ${{ steps.range.outputs.base }} HEAD \
+            | awk -F/ 'NF>=2 {print $1"/"$2}' \
             | sort -u > changed_reports.txt
 
           echo "Changed reports:"
           cat changed_reports.txt || echo "None"
 
-      # 4️⃣ Update versions & changelogs
+      # 4️⃣ Update version & changelog
       - name: Update versions and changelogs
         run: |
           TYPE="${{ steps.bump.outputs.type }}"
@@ -61,8 +63,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions@users.noreply.github.com"
 
-          # Collect cleaned commit messages (excluding merges)
-          CHANGE_MSGS=$(git log origin/main~1..HEAD --pretty=%s \
+          CHANGE_MSGS=$(git log ${{ steps.range.outputs.base }}..HEAD --pretty=%s \
             | grep -v "^Merge" \
             | sed -E 's/^(feat|fix|chore|docs|refactor|test|perf)!?:[[:space:]]*//')
 
@@ -72,8 +73,14 @@ jobs:
 
             [ ! -f "$VERSION" ] && continue
 
-            CUR=$(cat "$VERSION")
-            IFS='.' read MAJOR MINOR PATCH <<< "$CUR"
+            CUR=$(tr -d '[:space:]' < "$VERSION")
+
+            if ! [[ "$CUR" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Invalid version in $VERSION: $CUR"
+              exit 1
+            fi
+
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CUR"
 
             case "$TYPE" in
               major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
@@ -92,10 +99,13 @@ jobs:
             } >> "$CHANGELOG"
 
             git add "$VERSION" "$CHANGELOG"
-            git tag "$REPORT-v$NEW"
+
+            TAG=$(echo "$REPORT-v$NEW" | tr '/ ' '--')
+            git tag "$TAG"
+
           done < changed_reports.txt
 
           rm -f changed_reports.txt
 
           git commit -m "chore: bump report versions" || echo "No changes"
-          git push --tags
+          git push --follow-tags
