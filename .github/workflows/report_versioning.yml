@@ -46,7 +46,6 @@ jobs:
       - name: Detect changed reports
         run: |
           git diff --name-only origin/main~1 HEAD \
-            | grep '\.dat$' \
             | awk -F/ '{print $1"/"$2}' \
             | sort -u > changed_reports.txt
 
@@ -99,4 +98,4 @@ jobs:
           rm -f changed_reports.txt
 
           git commit -m "chore: bump report versions" || echo "No changes"
-          git push --follow-tags
+          git push --tags
