@@ -46,7 +46,7 @@ jobs:
       - name: Detect changed reports
         run: |
           git diff --name-only origin/main~1 HEAD \
-            | awk -F/ '{print $1"/"$2}' \
+            | awk -F/ '{print $1}' \
             | sort -u > changed_reports.txt
 
           echo "Changed reports:"
