@@ -1,0 +1,109 @@
+name: Report_Versioning
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  version-reports:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch main
+        run: git fetch origin main --prune
+
+      - name: Process Reports and Central JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@users.noreply.github.com"
+          DATE=$(date +"%Y-%m-%d")
+          JSON_FILE="report_versions.json"
+
+          if [ ! -f "$JSON_FILE" ]; then
+            echo "{}" > "$JSON_FILE"
+          fi
+
+          # 1. Added IFS= read -r to handle filenames with spaces correctly
+          git diff --name-only origin/main~1 HEAD | while IFS= read -r FILE; do
+            REPORT_ROOT=$(echo "$FILE" | cut -d/ -f1,2)
+            # Quote the variable to handle special characters in the path
+            if [ -f "$REPORT_ROOT/version.txt" ]; then
+              echo "$REPORT_ROOT"
+            fi
+          done | sort -u > changed_reports.txt
+
+          # 2. Use IFS= read -r to prevent word-splitting on spaces
+          while IFS= read -r REPORT; do
+            # Quote "$REPORT" so Git sees the full folder name
+            REPORT_COMMITS=$(git log origin/main~1..HEAD --pretty=%B -- "$REPORT")
+            
+            BUMP_TYPE="none"
+            if echo "$REPORT_COMMITS" | grep -q "^BREAKING_CHANGE:"; then
+              BUMP_TYPE="major"
+            elif echo "$REPORT_COMMITS" | grep -q "^feat:"; then
+              BUMP_TYPE="minor"
+            elif echo "$REPORT_COMMITS" | grep -q "^fix:"; then
+              BUMP_TYPE="patch"
+            fi
+
+            if [ "$BUMP_TYPE" = "none" ]; then
+              echo "No versioning keywords found for $REPORT. Skipping."
+              continue
+            fi
+
+            # Base folders
+            REPORT_NAME=$(basename "$REPORT")
+            CHANGELOG_DIR="changelog_folder"
+
+            # Ensure changelog directory exists
+            mkdir -p "$CHANGELOG_DIR"
+
+            VERSION_FILE="$REPORT/version.txt"
+            CHANGELOG_FILE="$CHANGELOG_DIR/${REPORT_NAME}_changelog.md"
+            
+            CUR=$(cat "$VERSION_FILE")
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CUR"
+
+            case "$BUMP_TYPE" in
+              major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
+              minor) MINOR=$((MINOR+1)); PATCH=0 ;;
+              patch) PATCH=$((PATCH+1)) ;;
+            esac
+
+            NEW="$MAJOR.$MINOR.$PATCH"
+            echo "$NEW" > "$VERSION_FILE"
+
+            REPORT_MSGS=$(git log origin/main~1..HEAD --pretty=%s -- "$REPORT" \
+              | grep -E "^(feat|fix|BREAKING_CHANGE)" \
+              | sed -E 's/^(feat|fix|BREAKING_CHANGE|chore|docs|refactor)!?:[[:space:]]*//')
+
+            {
+              echo -e "\n## $NEW ($DATE)"
+              echo "- Type: $BUMP_TYPE"
+              echo "$REPORT_MSGS" | sed 's/^/- /'
+            } >> "$CHANGELOG_FILE"
+
+            # 3. Clean the JSON key to ensure it's a valid string (replace / with _)
+            JSON_KEY=$(echo "$REPORT" | sed 's/\//_/g')
+            
+            jq --arg key "$JSON_KEY" --arg val "$NEW" '.[$key] = $val' "$JSON_FILE" > tmp.json && mv tmp.json "$JSON_FILE"
+
+            # 4. Stage files (REMOVED git tag line)
+            git add "$VERSION_FILE" "$CHANGELOG_FILE" "$JSON_FILE"
+
+          done < changed_reports.txt
+
+          # 5. Push changes (REMOVED --follow-tags)
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: bump report versions and update central json [skip ci]"
+            git push
+          else
+            echo "No version changes detected."
+          fi
